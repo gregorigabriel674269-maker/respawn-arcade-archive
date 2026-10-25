@@ -17,11 +17,9 @@ import {
 } from "@/lib/account";
 import { syncLeaderboardPlayer, refreshCommunity, syncLibrary, clearLibrary, clearPrivateCommunity } from "@/lib/community";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import "@lovable.dev/cloud-auth-js/styles.css";
 
 type SessionValue = {
   user: PublicUser | null;
