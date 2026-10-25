@@ -57,7 +57,7 @@ export function subscribeCommunity(callback: () => void) {
 export function getCommunitySnapshot(): CommunityState { return cacheValue; }
 export function clearPrivateCommunity() {
   communityGeneration++;
-  cacheValue = { ...cacheValue, ratings: Object.fromEntries(Object.entries(cacheValue.ratings).map(([name, bucket]) => [name, { ...bucket, byUser: {} }])), requests: cacheValue.requests.map(request => ({ ...request, voterIds: [] })) };
+  cacheValue = { ...cacheValue, ratings: Object.fromEntries(Object.entries(cacheValue.ratings).filter(([, bucket]) => bucket.votes > 0).map(([name, bucket]) => [name, { ...bucket, byUser: {} }])), requests: cacheValue.requests.map(request => ({ ...request, userId: '', voterIds: [] })) };
   window.dispatchEvent(new Event(EVENT));
 }
 export async function refreshCommunity() {
@@ -69,7 +69,7 @@ export async function refreshCommunity() {
   const ownRatings = user ? await supabase.from('game_ratings').select('*').eq('user_id',user.id) : {data:[]};
   const ownVotes = user ? await supabase.from('request_votes').select('request_id').eq('user_id',user.id) : {data:[]};
   if (generation !== communityGeneration || getAuthSnapshot()?.id !== user?.id) return;
-  cacheValue = { extraPlays: Object.fromEntries(summary.plays.map(r=>[r.game_name,Number(r.plays)])), ratings: Object.fromEntries(summary.ratings.map(r=>[r.game_name,{sum:Number(r.average)*Number(r.votes),votes:Number(r.votes),byUser: Object.fromEntries((ownRatings.data ?? []).filter(v=>v.game_name===r.game_name).map(v=>[v.user_id,v.rating]))}])), players:summary.players.map(p=>({id:p.id,displayName:p.display_name,avatarDataUrl:p.avatar_url,plays:Number(p.plays),leaderboard:true})), requests: summary.requests.map(r=>({id:r.id,status:r.status,userId:r.user_id,title:r.title,description:r.description,displayName:r.display_name,createdAt:r.created_at,votes:Number(r.votes),voterIds:user && ownVotes.data?.some(v=>v.request_id===r.id) ? [user.id]:[]})) };
+  cacheValue = { extraPlays: Object.fromEntries(summary.plays.map(r=>[r.game_name,Number(r.plays)])), ratings: Object.fromEntries(summary.ratings.map(r=>[r.game_name,{sum:Number(r.average)*Number(r.votes),votes:Number(r.votes),byUser: Object.fromEntries((ownRatings.data ?? []).filter(v=>v.game_name===r.game_name).map(v=>[v.user_id,v.rating]))}])), players:summary.players.map(p=>({id:p.id,displayName:p.display_name,avatarDataUrl:p.avatar_url,plays:Number(p.plays),leaderboard:true})), requests: summary.requests.map(r=>({id:r.id,status:r.status,userId:user && r.user_id===user.id ? r.user_id : '',title:r.title,description:r.description,displayName:r.display_name,createdAt:r.created_at,votes:Number(r.votes),voterIds:user && ownVotes.data?.some(v=>v.request_id===r.id) ? [user.id]:[]})) };
   for (const own of ownRatings.data ?? []) {
     const bucket = cacheValue.ratings[own.game_name] ?? {sum:0,votes:0,byUser:{}};
     cacheValue.ratings[own.game_name] = {...bucket,byUser:{...bucket.byUser,[own.user_id]:own.rating}};
