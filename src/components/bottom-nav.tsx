@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Dices, Gamepad2, House, Menu, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AccountButton } from "@/components/player-session";
 import { SettingsPanel } from "@/components/settings-panel";
 import { catalogSearch } from "@/lib/catalog-search";
@@ -11,6 +11,7 @@ export function BottomNav() {
   const hash = useRouterState({ select: (state) => state.location.hash });
   const navigate = useNavigate();
   const [more, setMore] = useState(false);
+  const moreButton = useRef<HTMLButtonElement>(null);
   const item = (active: boolean) =>
     `flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-semibold ${active ? "text-primary" : "text-muted-foreground"}`;
 
@@ -34,14 +35,14 @@ export function BottomNav() {
             <Dices className="h-5 w-5" aria-hidden="true" />
             Aleatório
           </button>
-          <button type="button" className={item(more)} aria-haspopup="dialog" aria-expanded={more} aria-controls="respawn-more-menu" onClick={() => setMore(true)}>
+          <button ref={moreButton} type="button" className={item(more)} aria-haspopup="dialog" aria-expanded={more} aria-controls="respawn-more-menu" onClick={() => setMore(true)}>
             <Menu className="h-5 w-5" aria-hidden="true" />
             Mais
           </button>
         </div>
       </nav>
       <Dialog.Root open={more} onOpenChange={setMore}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-50 bg-background/80 md:hidden"/>
-          <Dialog.Content id="respawn-more-menu" className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-2xl border border-border bg-card p-4 md:hidden">
+          <Dialog.Content id="respawn-more-menu" onCloseAutoFocus={(event) => { if (moreButton.current) { event.preventDefault(); moreButton.current.focus(); } }} className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-2xl border border-border bg-card p-4 md:hidden">
             <div className="mb-3 flex items-center justify-between">
               <Dialog.Title className="font-display text-xl font-bold">Mais</Dialog.Title>
               <Dialog.Description className="sr-only">Navegação e ajustes da conta.</Dialog.Description>
