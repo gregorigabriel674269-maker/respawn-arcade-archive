@@ -1,4 +1,9 @@
 # Evolução completa do RESPawn
+
+## Parte 1/6 — Auditoria e base
+- [x] Importar projeto existente, ler código/migrações/testes; 27 testes aprovados.
+- [x] Corrigir vazamento de autoria de pedidos após logout, janela virtual vazia e foco/rótulos do menu móvel.
+- [ ] Aplicar .lovable/pending/0015 (datas de histórico/denúncias no servidor): depende de conectar a Lovable Cloud deste projeto.
 - [x] Auditar integralmente páginas, catálogo, player, contas, comunidade, saves, controle, dados, segurança e testes; 22 testes aprovados, oito páginas verificadas em PC/celular.
 - [ ] Apresentar arquitetura e plano incremental preservando a identidade; confirmar limites antiabuso e conta proprietária do ADMIN.
 - [ ] Adaptar backend e autenticação administrativa com permissões e auditoria.
