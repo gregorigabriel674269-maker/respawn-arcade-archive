@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /** Visible row window, clamped so a shrinking list never leaves an empty viewport. */
-export function virtualWindow(itemCount: number, columns: number, stride: number, scrollTop: number, height: number, overscan: number) {
+export function virtualWindow(
+  itemCount: number,
+  columns: number,
+  stride: number,
+  scrollTop: number,
+  height: number,
+  overscan: number,
+) {
   const cols = Math.max(1, columns);
   const rows = Math.ceil(itemCount / cols);
   const visible = Math.ceil(height / stride);
@@ -35,7 +42,14 @@ export function VirtualGrid<T>({
   const [scrollTop, setScrollTop] = useState(0);
   const cols = Math.max(1, columns);
   const stride = rowHeight + gap;
-  const { rows, start, end } = virtualWindow(items.length, cols, stride, scrollTop, height, overscan);
+  const { rows, start, end } = virtualWindow(
+    items.length,
+    cols,
+    stride,
+    scrollTop,
+    height,
+    overscan,
+  );
   const slice = items.slice(start * cols, end * cols);
 
   useEffect(() => {
@@ -70,10 +84,7 @@ export function VirtualGrid<T>({
       className="h-[min(72dvh,56rem)] overflow-y-auto"
     >
       <div style={{ height: start * stride }} />
-      <div
-        className="grid"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap }}
-      >
+      <div className="grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap }}>
         {slice.map((item) => (
           <div key={getKey(item)} style={{ height: rowHeight }}>
             {renderItem(item)}
