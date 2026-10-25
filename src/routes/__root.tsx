@@ -12,6 +12,13 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Toaster } from "sonner";
+import { BottomNav } from "@/components/bottom-nav";
+import { PlayProvider } from "@/components/play-gate";
+import { PlayerSessionProvider } from "@/components/player-session";
+import { initializeOffline } from "@/lib/offline";
+import { refreshCatalogOverrides } from '@/lib/catalog-overrides';
+import { PrefsProvider } from "@/lib/prefs";
 
 function NotFoundComponent() {
   return (
@@ -78,21 +85,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Respawn — Portal de jogos de navegador" },
+      {
+        name: "description",
+        content: "Clássicos e jogos de PC rodando direto no navegador. Escolha um jogo e comece a jogar.",
+      },
+      { property: "og:title", content: "Respawn — Portal de jogos de navegador" },
+      {
+        property: "og:description",
+        content: "Clássicos e jogos de PC rodando direto no navegador. Escolha um jogo e comece a jogar.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "theme-color", content: "#12141c" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Rubik:wght@400;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
@@ -103,9 +120,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var p=JSON.parse(localStorage.getItem('respawn-prefs')||'{}');var t=p.theme||'dark';if(t==='auto')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';if(t!=='light')t='dark';document.documentElement.dataset.theme=t;document.documentElement.dataset.accent=p.accent||'lime';document.documentElement.dataset.school=p.school?'on':'off';document.documentElement.dataset.ultra=p.school&&p.ultra?'on':'off';}catch(e){}",
+          }}
+        />
       </head>
       <body>
         {children}
@@ -117,11 +140,22 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => { void initializeOffline().catch(() => {});const update=()=>{void refreshCatalogOverrides();};update();window.addEventListener("respawn-catalog-update",update);return()=>window.removeEventListener("respawn-catalog-update",update); }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <PrefsProvider>
+        <PlayerSessionProvider>
+          <PlayProvider>
+            <div className="pb-24 md:pb-0">
+              <Outlet />
+              <footer className="border-t border-border px-4 py-5 text-center text-xs text-muted-foreground">Feito por: GREGORI G.</footer>
+            </div>
+            <BottomNav />
+            <Toaster theme="dark" position="bottom-right" />
+          </PlayProvider>
+        </PlayerSessionProvider>
+      </PrefsProvider>
     </QueryClientProvider>
   );
 }

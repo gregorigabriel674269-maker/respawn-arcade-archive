@@ -1,0 +1,17 @@
+CREATE OR REPLACE FUNCTION public.can_like_comment(_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT EXISTS(SELECT 1 FROM game_comments WHERE id=_id AND NOT hidden AND user_id<>auth.uid()) $$;
+REVOKE ALL ON FUNCTION public.can_like_comment(uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.can_like_comment(uuid) TO authenticated;
+DROP POLICY comments_public ON public.game_comments;
+REVOKE SELECT ON public.game_comments FROM anon;
+DROP POLICY likes_own_insert ON public.comment_likes;
+CREATE POLICY likes_own_insert ON public.comment_likes FOR INSERT TO authenticated WITH CHECK(user_id=auth.uid() AND public.can_like_comment(comment_id));
+CREATE OR REPLACE FUNCTION public.save_upload_allowed() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT auth.uid() IS NOT NULL AND (SELECT coalesce(sum((metadata->>'size')::bigint),0) FROM storage.objects WHERE bucket_id='player-saves' AND split_part(name,'/',1)=auth.uid()::text)<=94371840 AND (SELECT count(*) FROM storage.objects WHERE bucket_id='player-saves' AND split_part(name,'/',1)=auth.uid()::text)<100 $$;
+REVOKE ALL ON FUNCTION public.save_upload_allowed() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.save_upload_allowed() TO authenticated;
+DROP POLICY saves_insert ON storage.objects;
+CREATE POLICY saves_insert ON storage.objects FOR INSERT TO authenticated WITH CHECK(bucket_id='player-saves' AND (storage.foldername(name))[1]=auth.uid()::text AND name ~* '\.(sav|srm|state|json|zip|dat)$' AND public.save_upload_allowed());
+CREATE OR REPLACE FUNCTION public.admin_remove_rating(_user uuid,_game text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN IF NOT admin_is_unlocked() THEN RAISE EXCEPTION 'Acesso negado'; END IF; DELETE FROM game_ratings WHERE user_id=_user AND game_name=_game; INSERT INTO admin_audit(actor_id,action,resource) VALUES(auth.uid(),'rating_remove',_user::text||':'||_game); END $$;
+REVOKE ALL ON FUNCTION public.admin_remove_rating(uuid,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.admin_remove_rating(uuid,text) TO authenticated;
+CREATE OR REPLACE FUNCTION public.rtc_retire_expired() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN INSERT INTO rtc_closed_rooms(room_id) VALUES(OLD.id) ON CONFLICT DO NOTHING; RETURN OLD; END $$;
+CREATE TRIGGER rtc_retire_room BEFORE DELETE ON public.rtc_rooms FOR EACH ROW EXECUTE FUNCTION public.rtc_retire_expired();

@@ -1,0 +1,11 @@
+CREATE TABLE public.catalog_registry(game_name text PRIMARY KEY,source_url text NOT NULL,category text NOT NULL DEFAULT '',updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT ON public.catalog_registry TO anon,authenticated;
+GRANT ALL ON public.catalog_registry TO service_role;
+ALTER TABLE public.catalog_registry ENABLE ROW LEVEL SECURITY;
+CREATE POLICY catalog_public ON public.catalog_registry FOR SELECT TO anon,authenticated USING(true);
+CREATE OR REPLACE FUNCTION public.validate_catalog_action() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN IF NOT EXISTS(SELECT 1 FROM catalog_registry WHERE game_name=NEW.game_name) THEN RAISE EXCEPTION 'Jogo não encontrado no catálogo'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER validate_rating_game BEFORE INSERT OR UPDATE ON public.game_ratings FOR EACH ROW EXECUTE FUNCTION public.validate_catalog_action();
+CREATE TRIGGER validate_play_game BEFORE INSERT ON public.play_events FOR EACH ROW EXECUTE FUNCTION public.validate_catalog_action();
+CREATE TRIGGER validate_comment_game BEFORE INSERT OR UPDATE ON public.game_comments FOR EACH ROW EXECUTE FUNCTION public.validate_catalog_action();
+CREATE TRIGGER validate_library_game BEFORE INSERT OR UPDATE ON public.player_library FOR EACH ROW EXECUTE FUNCTION public.validate_catalog_action();
+CREATE TRIGGER validate_save_game BEFORE INSERT ON public.save_versions FOR EACH ROW EXECUTE FUNCTION public.validate_catalog_action();

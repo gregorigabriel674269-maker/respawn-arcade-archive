@@ -1,0 +1,10 @@
+[
+  {"capability":"code","source":"Lovable TanStack app (Respawn)","outcome":"migrate","status":"verified","next_action":"none"},
+  {"capability":"schema","source":"drizzle/migrations 0000-0002","outcome":"migrate","status":"verified","next_action":"none"},
+  {"capability":"storage bucket player-saves","source":"previous Cloud storage","outcome":"migrate","status":"verified","next_action":"none"},
+  {"capability":"auth (email, Google, Lovable)","source":"previous Cloud auth","outcome":"migrate","status":"implemented","next_action":"verify with a real account"},
+  {"capability":"records","source":"previous Cloud database","outcome":"migrate","status":"pending","next_action":"request CSV exports"},
+  {"capability":"auth identities","source":"previous Cloud auth","outcome":"migrate","status":"pending","next_action":"request user export (id, email)"},
+  {"capability":"file bytes (cloud saves)","source":"previous Cloud storage","outcome":"migrate","status":"pending","next_action":"request save files if needed"},
+  {"capability":"verification","source":"-","outcome":"verify","status":"partial","next_action":"pages load; signed-in flows pending users"}
+]
