@@ -10,33 +10,154 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ContaRouteImport } from './routes/conta'
+import { Route as ControleRouteImport } from './routes/controle'
+import { Route as DesafioRouteImport } from './routes/desafio'
+import { Route as JogosRouteImport } from './routes/jogos'
+import { Route as PedidosRouteImport } from './routes/pedidos'
+import { Route as RankingsRouteImport } from './routes/rankings'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SavesRouteImport } from './routes/saves'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContaRoute = ContaRouteImport.update({
+  id: '/conta',
+  path: '/conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ControleRoute = ControleRouteImport.update({
+  id: '/controle',
+  path: '/controle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesafioRoute = DesafioRouteImport.update({
+  id: '/desafio',
+  path: '/desafio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JogosRoute = JogosRouteImport.update({
+  id: '/jogos',
+  path: '/jogos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PedidosRoute = PedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RankingsRoute = RankingsRouteImport.update({
+  id: '/rankings',
+  path: '/rankings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavesRoute = SavesRouteImport.update({
+  id: '/saves',
+  path: '/saves',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/conta': typeof ContaRoute
+  '/controle': typeof ControleRoute
+  '/desafio': typeof DesafioRoute
+  '/jogos': typeof JogosRoute
+  '/pedidos': typeof PedidosRoute
+  '/rankings': typeof RankingsRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/saves': typeof SavesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/conta': typeof ContaRoute
+  '/controle': typeof ControleRoute
+  '/desafio': typeof DesafioRoute
+  '/jogos': typeof JogosRoute
+  '/pedidos': typeof PedidosRoute
+  '/rankings': typeof RankingsRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/saves': typeof SavesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/conta': typeof ContaRoute
+  '/controle': typeof ControleRoute
+  '/desafio': typeof DesafioRoute
+  '/jogos': typeof JogosRoute
+  '/pedidos': typeof PedidosRoute
+  '/rankings': typeof RankingsRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/saves': typeof SavesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/conta'
+    | '/controle'
+    | '/desafio'
+    | '/jogos'
+    | '/pedidos'
+    | '/rankings'
+    | '/reset-password'
+    | '/saves'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/conta'
+    | '/controle'
+    | '/desafio'
+    | '/jogos'
+    | '/pedidos'
+    | '/rankings'
+    | '/reset-password'
+    | '/saves'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/conta'
+    | '/controle'
+    | '/desafio'
+    | '/jogos'
+    | '/pedidos'
+    | '/rankings'
+    | '/reset-password'
+    | '/saves'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  ContaRoute: typeof ContaRoute
+  ControleRoute: typeof ControleRoute
+  DesafioRoute: typeof DesafioRoute
+  JogosRoute: typeof JogosRoute
+  PedidosRoute: typeof PedidosRoute
+  RankingsRoute: typeof RankingsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SavesRoute: typeof SavesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +169,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conta': {
+      id: '/conta'
+      path: '/conta'
+      fullPath: '/conta'
+      preLoaderRoute: typeof ContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/controle': {
+      id: '/controle'
+      path: '/controle'
+      fullPath: '/controle'
+      preLoaderRoute: typeof ControleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/desafio': {
+      id: '/desafio'
+      path: '/desafio'
+      fullPath: '/desafio'
+      preLoaderRoute: typeof DesafioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jogos': {
+      id: '/jogos'
+      path: '/jogos'
+      fullPath: '/jogos'
+      preLoaderRoute: typeof JogosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pedidos': {
+      id: '/pedidos'
+      path: '/pedidos'
+      fullPath: '/pedidos'
+      preLoaderRoute: typeof PedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rankings': {
+      id: '/rankings'
+      path: '/rankings'
+      fullPath: '/rankings'
+      preLoaderRoute: typeof RankingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saves': {
+      id: '/saves'
+      path: '/saves'
+      fullPath: '/saves'
+      preLoaderRoute: typeof SavesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  ContaRoute: ContaRoute,
+  ControleRoute: ControleRoute,
+  DesafioRoute: DesafioRoute,
+  JogosRoute: JogosRoute,
+  PedidosRoute: PedidosRoute,
+  RankingsRoute: RankingsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SavesRoute: SavesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

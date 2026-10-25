@@ -1,0 +1,12 @@
+import { ArrowUp,ArrowRight,ArrowDown,ArrowLeft } from 'lucide-react';
+import { useEffect,useRef } from 'react';
+import { Button } from '@/components/ui/button';
+const keys=['ArrowUp','ArrowRight','ArrowDown','ArrowLeft',' ','Enter','z','x','c','v','q','e','1','3','Tab'];
+const icons=[ArrowUp,ArrowRight,ArrowDown,ArrowLeft];
+export function TouchController({onControl,disabled=false}:{onControl:(key:string,down:boolean)=>void;disabled?:boolean}){
+ const held=useRef(new Set<string>());const callback=useRef(onControl);callback.current=onControl;
+ function send(key:string,down:boolean){if(down){if(held.current.has(key))return;held.current.add(key);navigator.vibrate?.(8);}else held.current.delete(key);callback.current(key,down);}
+ useEffect(()=>{const release=()=>{for(const key of held.current)callback.current(key,false);held.current.clear();};window.addEventListener('blur',release);return()=>{release();window.removeEventListener('blur',release);};},[]);
+ function analog(name:string,directions:string[]){return <div role="group" aria-label={name} className="grid grid-cols-3 gap-1">{directions.map((key,i)=><Button key={key} variant="secondary" disabled={disabled} aria-label={`${name} ${['cima','direita','baixo','esquerda'][i]}`} className="h-12 touch-none" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);send(key,true);}} onPointerUp={()=>send(key,false)} onPointerCancel={()=>send(key,false)} onLostPointerCapture={()=>send(key,false)} onKeyDown={e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();send(key,true);}}} onKeyUp={()=>send(key,false)}>{['↑','→','↓','←'][i]}</Button>)}</div>;}
+ return <div className="space-y-3" aria-label="Controle de toque"><div className="grid grid-cols-3 gap-3">{keys.map((key,i)=>{const Icon=icons[i];const label=['Cima','Direita','Baixo','Esquerda','Ação','Start','A','B','X','Y','LB','RB','LT','RT','View'][i];return <Button key={key} variant="secondary" disabled={disabled} aria-label={label} className="h-14 touch-none select-none" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);send(key,true);}} onPointerUp={()=>send(key,false)} onPointerCancel={()=>send(key,false)} onLostPointerCapture={()=>send(key,false)} onKeyDown={e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();send(key,true);}}} onKeyUp={()=>send(key,false)} onBlur={()=>send(key,false)}>{Icon?<Icon/>:label}</Button>;})}</div><div className="grid grid-cols-2 gap-4">{analog('Analógico esquerdo',['w','d','s','a'])}{analog('Analógico direito',['i','l','k','j'])}</div></div>;
+}

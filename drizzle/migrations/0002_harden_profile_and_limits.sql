@@ -1,0 +1,9 @@
+REVOKE ALL ON FUNCTION public.create_player_profile() FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.limit_player_plays() FROM PUBLIC,anon,authenticated;
+CREATE FUNCTION public.validate_player_profile() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN IF NEW.avatar_url IS NOT NULL AND (octet_length(NEW.avatar_url)>150000 OR NEW.avatar_url !~ '^data:image/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$') THEN RAISE EXCEPTION 'Invalid avatar'; END IF; IF octet_length(NEW.preferences::text)>10000 THEN RAISE EXCEPTION 'Preferences too large'; END IF; RETURN NEW; END $$;
+REVOKE ALL ON FUNCTION public.validate_player_profile() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER validate_profile BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.validate_player_profile();
+CREATE FUNCTION public.limit_community_writes() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN PERFORM pg_advisory_xact_lock(hashtext(NEW.user_id::text)); IF TG_TABLE_NAME='game_requests' AND (SELECT count(*) FROM game_requests WHERE user_id=NEW.user_id AND created_at>now()-interval '1 day')>=10 THEN RAISE EXCEPTION 'Limite diário de pedidos'; END IF; IF TG_TABLE_NAME='game_feedback' AND (SELECT count(*) FROM game_feedback WHERE user_id=NEW.user_id AND created_at>now()-interval '1 day')>=30 THEN RAISE EXCEPTION 'Limite diário de feedback'; END IF; RETURN NEW; END $$;
+REVOKE ALL ON FUNCTION public.limit_community_writes() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER limit_requests BEFORE INSERT ON public.game_requests FOR EACH ROW EXECUTE FUNCTION public.limit_community_writes();
+CREATE TRIGGER limit_feedback BEFORE INSERT ON public.game_feedback FOR EACH ROW EXECUTE FUNCTION public.limit_community_writes();

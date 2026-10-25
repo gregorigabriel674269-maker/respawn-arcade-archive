@@ -1,0 +1,10 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { useEffect,useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+export const Route=createFileRoute('/reset-password')({head:()=>({meta:[{title:'Redefinir senha — Respawn'},{name:'description',content:'Redefina com segurança sua senha de jogador Respawn.'},{property:'og:title',content:'Redefinir senha — Respawn'},{property:'og:description',content:'Recupere sua conta de jogador Respawn.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:ResetPassword});
+function ResetPassword(){
+ const [recovery,setRecovery]=useState(false);const [password,setPassword]=useState('');const [status,setStatus]=useState('');const [busy,setBusy]=useState(false);
+ useEffect(()=>{const valid=new URLSearchParams(window.location.hash.slice(1)).get('type')==='recovery';setRecovery(valid);const {data:{subscription}}=supabase.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')setRecovery(true);});return ()=>subscription.unsubscribe();},[]);
+ return <main className="mx-auto max-w-md space-y-5 px-4 py-12"><h1 className="font-display text-3xl font-bold">Nova senha</h1>{recovery?<form className="space-y-4" onSubmit={async e=>{e.preventDefault();setBusy(true);const {error}=await supabase.auth.updateUser({password});setStatus(error?'Não foi possível alterar a senha. Solicite um novo link.':'Senha atualizada. Você pode voltar ao Respawn.');setBusy(false);}}><label className="block">Nova senha<input aria-label="Nova senha" autoComplete="new-password" type="password" required minLength={8} maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} className="mt-2 w-full rounded-md border border-border bg-card p-3"/></label><Button disabled={busy}>Salvar nova senha</Button></form>:<p>Abra o link de recuperação enviado ao seu email.</p>}<p role="status">{status}</p><a href="/" className="text-primary">Voltar ao Respawn</a></main>;
+}

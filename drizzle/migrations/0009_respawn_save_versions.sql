@@ -1,0 +1,15 @@
+CREATE TABLE public.save_versions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,game_name text NOT NULL,slot text NOT NULL DEFAULT 'Principal',object_name text NOT NULL UNIQUE,checksum text NOT NULL,size_bytes bigint NOT NULL CHECK(size_bytes BETWEEN 0 AND 10485760),version integer NOT NULL CHECK(version>0),created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(user_id,game_name,slot,version));
+GRANT SELECT ON public.save_versions TO authenticated;
+GRANT ALL ON public.save_versions TO service_role;
+ALTER TABLE public.save_versions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_save_versions ON public.save_versions FOR SELECT TO authenticated USING(user_id=auth.uid());
+CREATE INDEX save_versions_user_game ON public.save_versions(user_id,game_name,slot,version DESC);
+CREATE OR REPLACE FUNCTION public.register_save_version(_game text,_slot text,_object text,_checksum text,_base integer) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE latest integer; bytes bigint; v uuid; BEGIN IF auth.uid() IS NULL OR split_part(_object,'/',1)<>auth.uid()::text OR _checksum !~ '^[a-f0-9]{64}$' OR length(_slot) NOT BETWEEN 1 AND 50 OR length(_game) NOT BETWEEN 1 AND 200 THEN RAISE EXCEPTION 'Save inválido'; END IF; PERFORM pg_advisory_xact_lock(hashtext(auth.uid()::text||_game||_slot)); SELECT coalesce(max(version),0) INTO latest FROM save_versions WHERE user_id=auth.uid() AND game_name=_game AND slot=_slot; IF latest<>_base THEN RETURN jsonb_build_object('conflict',true,'latest',latest); END IF; SELECT (metadata->>'size')::bigint INTO bytes FROM storage.objects WHERE bucket_id='player-saves' AND name=_object; IF bytes IS NULL OR bytes>10485760 THEN RAISE EXCEPTION 'Arquivo não encontrado ou grande demais'; END IF; IF (SELECT coalesce(sum(size_bytes),0) FROM save_versions WHERE user_id=auth.uid())+bytes>104857600 THEN RAISE EXCEPTION 'Quota de 100 MB atingida'; END IF; PERFORM consume_action_budget('save',20,3600); INSERT INTO save_versions(user_id,game_name,slot,object_name,checksum,size_bytes,version) VALUES(auth.uid(),_game,_slot,_object,_checksum,bytes,latest+1) RETURNING id INTO v; RETURN jsonb_build_object('conflict',false,'version',latest+1,'id',v); END $$;
+REVOKE ALL ON FUNCTION public.register_save_version(text,text,text,text,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.register_save_version(text,text,text,text,integer) TO authenticated;
+DROP POLICY saves_update ON storage.objects;
+CREATE OR REPLACE FUNCTION public.save_object_can_delete(_name text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT NOT EXISTS(SELECT 1 FROM save_versions WHERE object_name=_name) $$;
+REVOKE ALL ON FUNCTION public.save_object_can_delete(text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.save_object_can_delete(text) TO authenticated;
+DROP POLICY saves_delete ON storage.objects;
+CREATE POLICY saves_delete ON storage.objects FOR DELETE TO authenticated USING(bucket_id='player-saves' AND (storage.foldername(name))[1]=auth.uid()::text AND public.save_object_can_delete(name));

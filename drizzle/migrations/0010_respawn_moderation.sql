@@ -1,0 +1,16 @@
+CREATE TABLE public.content_reports(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,comment_id uuid NOT NULL REFERENCES public.game_comments(id),reason text NOT NULL CHECK(char_length(reason) BETWEEN 5 AND 500),created_at timestamptz NOT NULL DEFAULT now(),resolved boolean NOT NULL DEFAULT false,UNIQUE(user_id,comment_id));
+GRANT SELECT,INSERT ON public.content_reports TO authenticated;
+GRANT ALL ON public.content_reports TO service_role;
+ALTER TABLE public.content_reports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_report_insert ON public.content_reports FOR INSERT TO authenticated WITH CHECK(user_id=auth.uid() AND NOT resolved);
+CREATE POLICY own_report_read ON public.content_reports FOR SELECT TO authenticated USING(user_id=auth.uid() OR admin_is_unlocked());
+CREATE TRIGGER report_budget BEFORE INSERT ON public.content_reports FOR EACH ROW EXECUTE FUNCTION public.limit_social_write();
+CREATE OR REPLACE FUNCTION public.admin_moderate_comment(_id uuid,_hidden boolean) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN IF NOT admin_is_unlocked() THEN RAISE EXCEPTION 'Acesso negado'; END IF; UPDATE game_comments SET hidden=_hidden WHERE id=_id; INSERT INTO admin_audit(actor_id,action,resource,details) VALUES(auth.uid(),'comment_moderation',_id::text,jsonb_build_object('hidden',_hidden)); UPDATE content_reports SET resolved=true WHERE comment_id=_id; END $$;
+REVOKE ALL ON FUNCTION public.admin_moderate_comment(uuid,boolean) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.admin_moderate_comment(uuid,boolean) TO authenticated;
+CREATE OR REPLACE FUNCTION public.admin_reports() RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN IF NOT admin_is_unlocked() THEN RAISE EXCEPTION 'Acesso negado'; END IF; RETURN coalesce((SELECT jsonb_agg(t) FROM (SELECT r.id,r.comment_id,r.reason,r.created_at,c.message,c.game_name,c.hidden FROM content_reports r JOIN game_comments c ON c.id=r.comment_id WHERE NOT r.resolved ORDER BY r.created_at LIMIT 100)t),'[]'::jsonb); END $$;
+REVOKE ALL ON FUNCTION public.admin_reports() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.admin_reports() TO authenticated;
+CREATE OR REPLACE FUNCTION public.admin_lock() RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN UPDATE admin_access SET expires_at=now() WHERE user_id=auth.uid(); END $$;
+REVOKE ALL ON FUNCTION public.admin_lock() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.admin_lock() TO authenticated;
