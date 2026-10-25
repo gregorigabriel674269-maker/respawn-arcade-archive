@@ -16,40 +16,40 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav aria-label="Navegação principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="flex">
-          <button type="button" className={item(path === "/" && hash !== "surpresa")} onClick={() => void navigate({ to: "/", hash: "topo" })}>
+          <button type="button" className={item(path === "/" && hash !== "surpresa")} aria-current={path === "/" && hash !== "surpresa" ? "page" : undefined} onClick={() => void navigate({ to: "/", hash: "topo" })}>
             <House className="h-5 w-5" aria-hidden="true" />
             Início
           </button>
-          <button type="button" className={item(path === "/jogos" && hash === "buscar")} onClick={() => void navigate({ to: "/jogos", search: catalogSearch(), hash: "buscar" })}>
+          <button type="button" className={item(path === "/jogos" && hash === "buscar")} aria-current={path === "/jogos" && hash === "buscar" ? "page" : undefined} onClick={() => void navigate({ to: "/jogos", search: catalogSearch(), hash: "buscar" })}>
             <Search className="h-5 w-5" aria-hidden="true" />
             Buscar
           </button>
-          <button type="button" className={item(path === "/jogos" && hash !== "buscar")} onClick={() => void navigate({ to: "/jogos", search: catalogSearch() })}>
+          <button type="button" className={item(path === "/jogos" && hash !== "buscar")} aria-current={path === "/jogos" && hash !== "buscar" ? "page" : undefined} onClick={() => void navigate({ to: "/jogos", search: catalogSearch() })}>
             <Gamepad2 className="h-5 w-5" aria-hidden="true" />
             Jogos
           </button>
-          <button type="button" className={item(path === "/" && hash === "surpresa")} onClick={() => void navigate({ to: "/", hash: "surpresa" })}>
+          <button type="button" className={item(path === "/" && hash === "surpresa")} aria-current={path === "/" && hash === "surpresa" ? "page" : undefined} onClick={() => void navigate({ to: "/", hash: "surpresa" })}>
             <Dices className="h-5 w-5" aria-hidden="true" />
             Aleatório
           </button>
-          <button type="button" className={item(more)} onClick={() => setMore(true)}>
+          <button type="button" className={item(more)} aria-haspopup="dialog" aria-expanded={more} aria-controls="respawn-more-menu" onClick={() => setMore(true)}>
             <Menu className="h-5 w-5" aria-hidden="true" />
             Mais
           </button>
         </div>
       </nav>
       <Dialog.Root open={more} onOpenChange={setMore}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-50 bg-background/80 md:hidden"/>
-          <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-2xl border border-border bg-card p-4 md:hidden">
+          <Dialog.Content id="respawn-more-menu" className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-2xl border border-border bg-card p-4 md:hidden">
             <div className="mb-3 flex items-center justify-between">
               <Dialog.Title className="font-display text-xl font-bold">Mais</Dialog.Title>
               <Dialog.Description className="sr-only">Navegação e ajustes da conta.</Dialog.Description>
               <button type="button" aria-label="Fechar" onClick={() => setMore(false)} className="grid h-11 w-11 place-items-center rounded-md">
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-            <div className="grid gap-2 text-sm font-semibold">
+            <nav aria-label="Mais opções" className="grid gap-2 text-sm font-semibold">
               <button type="button" className="h-11 rounded-md bg-secondary px-3 text-left" onClick={() => { setMore(false); void navigate({ to: "/jogos", search: catalogSearch({ focus: "favs" }) }); }}>
                 Meus jogos
               </button>
@@ -63,7 +63,7 @@ export function BottomNav() {
               <Link to="/saves" className="flex h-11 items-center rounded-md bg-secondary px-3" onClick={() => setMore(false)}>Saves na nuvem</Link>
               <Link to="/admin" className="flex h-11 items-center rounded-md bg-secondary px-3" onClick={() => setMore(false)}>ADMIN</Link>
               <Link to="/conta" className="flex h-11 items-center rounded-md bg-secondary px-3" onClick={() => setMore(false)}>Minha atividade</Link>
-            </div>
+            </nav>
             <div className="mt-3" onClick={()=>setMore(false)}>
               <AccountButton />
             </div>
