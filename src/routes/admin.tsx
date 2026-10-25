@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { useState } from 'react';
+import { useEffect,useState } from 'react';
 import { ShieldCheck,LockKeyhole } from 'lucide-react';
 import { SiteHeader } from '@/components/site-header';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,9 @@ function AdminPage(){
  const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [code,setCode]=useState('');const [busy,setBusy]=useState(false);const [status,setStatus]=useState('');
  const [data,setData]=useState<Awaited<ReturnType<typeof overview>>|null>(null);const [owner,setOwner]=useState<string|null>(null);
  const visible=data && owner===user?.id?data:null;
- async function refresh(){const account=getAuthSnapshot()?.id;try{const next=await overview();const nextReports=await reportsFn();if(account!==getAuthSnapshot()?.id)return;setData(next);setReports(nextReports);}catch(e){setData(null);throw e;}}
+  async function refresh(){const account=getAuthSnapshot()?.id;try{const next=await overview();const nextReports=await reportsFn();if(account!==getAuthSnapshot()?.id)return;setData(next);setReports(nextReports);setOwner(account ?? null);}catch(e){setData(null);throw e;}}
+  // Restore an already-unlocked session after remounts/reloads; the server still decides access.
+  useEffect(()=>{setData(null);setReports([]);setOwner(null);if(user?.id)void refresh().catch(()=>{});},[user?.id]);
  return <div><SiteHeader/><main className="mx-auto max-w-5xl px-4 py-8"><h1 className="flex items-center gap-3 font-display text-3xl font-bold"><ShieldCheck/>ADMIN</h1>{!visible?<form className="mt-8 max-w-md space-y-4" onSubmit={async e=>{e.preventDefault();setBusy(true);setStatus('');try{await signIn({email,password});await unlock({data:{code}});setOwner(getAuthSnapshot()?.id ?? null);await refresh();setPassword('');setCode('');setStatus('Autenticação administrativa concluída.');}catch(err){setStatus(err instanceof Error?err.message:'Não foi possível entrar. Tente novamente.');}finally{setBusy(false);}}}>
  <label className="block text-sm">Email<input type="email" required autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} className="mt-1 w-full rounded-md border border-border bg-card p-3"/></label>
  <label className="block text-sm">Senha<input type="password" required autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} className="mt-1 w-full rounded-md border border-border bg-card p-3"/></label>
