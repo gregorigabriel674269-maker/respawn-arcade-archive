@@ -1,0 +1,2 @@
+CREATE OR REPLACE FUNCTION public.limit_social_write() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN IF auth.uid() IS NOT NULL THEN PERFORM consume_action_budget(TG_TABLE_NAME,30,60); END IF; IF TG_OP='DELETE' THEN RETURN OLD; END IF; RETURN NEW; END $$;
+REVOKE EXECUTE ON FUNCTION public.limit_social_write() FROM PUBLIC,anon,authenticated;
