@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+/** Visible row window, clamped so a shrinking list never leaves an empty viewport. */
+export function virtualWindow(itemCount: number, columns: number, stride: number, scrollTop: number, height: number, overscan: number) {
+  const cols = Math.max(1, columns);
+  const rows = Math.ceil(itemCount / cols);
+  const visible = Math.ceil(height / stride);
+  const maxStart = Math.max(0, rows - visible - overscan);
+  const start = Math.min(maxStart, Math.max(0, Math.floor(scrollTop / stride) - overscan));
+  const end = Math.min(rows, start + visible + overscan * 2);
+  return { rows, start, end };
+}
+
 export function VirtualGrid<T>({
   items,
   getKey,
@@ -24,9 +35,7 @@ export function VirtualGrid<T>({
   const [scrollTop, setScrollTop] = useState(0);
   const cols = Math.max(1, columns);
   const stride = rowHeight + gap;
-  const rows = Math.ceil(items.length / cols);
-  const start = Math.max(0, Math.floor(scrollTop / stride) - overscan);
-  const end = Math.min(rows, start + Math.ceil(height / stride) + overscan * 2);
+  const { rows, start, end } = virtualWindow(items.length, cols, stride, scrollTop, height, overscan);
   const slice = items.slice(start * cols, end * cols);
 
   useEffect(() => {
@@ -42,6 +51,17 @@ export function VirtualGrid<T>({
     scroller.current?.scrollTo({ top: 0 });
     setScrollTop(0);
   }, [resetKey, cols]);
+
+  // When items are removed (e.g. unfavoriting) keep the scroll position inside the list.
+  useEffect(() => {
+    const element = scroller.current;
+    if (!element) return;
+    const maxTop = Math.max(0, rows * stride - element.clientHeight);
+    if (element.scrollTop > maxTop) {
+      element.scrollTop = maxTop;
+      setScrollTop(maxTop);
+    }
+  }, [rows, stride]);
 
   return (
     <div

@@ -267,7 +267,7 @@ export function CatalogPage({ search }: { search: CatalogSearch }) {
             columns={columns}
             rowHeight={rowHeight}
             overscan={prefs.school ? 1 : 2}
-            resetKey={`${search.q}|${category}|${platform}|${perf}|${duration}|${sort}|${device}|${minute}|${search.focus}|${search.tag}|${filtered.map(game => game.name).join('\n')}`}
+            resetKey={`${search.q}|${category}|${platform}|${perf}|${duration}|${sort}|${device}|${minute}|${search.focus}|${search.tag}|${prefs.school}`}
             renderItem={(game) => (
               <GameCard
                 game={game}
