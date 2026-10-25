@@ -25,7 +25,14 @@ export async function refreshAccount() {
 }
 export async function signUp(input: { email: string; password: string; displayName: string }) {
   const { data, error } = await supabase.auth.signUp({ email: input.email.trim(), password: input.password, options: { emailRedirectTo: window.location.origin, data: { display_name: input.displayName.trim() } } });
-  if (error) throw new Error('Não foi possível criar a conta. Confira os dados e tente novamente.');
+  if (error) {
+    const code = (error as { code?: string }).code ?? '';
+    if (code === 'over_email_send_rate_limit' || error.status === 429) throw new Error('Muitos cadastros em pouco tempo. O envio de emails de confirmação está no limite; tente novamente mais tarde.');
+    if (code === 'user_already_exists') throw new Error('Este email já tem conta. Use "Entrar" ou "Esqueci minha senha".');
+    if (code === 'weak_password') throw new Error('Senha fraca. Use pelo menos 8 caracteres com letras e números.');
+    if (code === 'email_address_invalid') throw new Error('Este email não foi aceito. Use um endereço real.');
+    throw new Error('Não foi possível criar a conta. Confira os dados e tente novamente.');
+  }
   return Boolean(data.session);
 }
 export async function signIn(input: { email: string; password: string }) {
