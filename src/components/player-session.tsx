@@ -17,11 +17,9 @@ import {
 } from "@/lib/account";
 import { syncLeaderboardPlayer, refreshCommunity, syncLibrary, clearLibrary, clearPrivateCommunity } from "@/lib/community";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import "@lovable.dev/cloud-auth-js/styles.css";
 
 type SessionValue = {
   user: PublicUser | null;
@@ -225,8 +223,7 @@ function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open
               </Button>
             </form>
             {mode !== "forgot" ? <div className="grid gap-2">
-              <Button variant="secondary" disabled={busy} onClick={async () => { const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin }); if (result.error) setStatus("Não foi possível entrar com Google."); }}>Continuar com Google</Button>
-              <Button className="lovable-auth-button" disabled={busy} onClick={async () => { const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: window.location.origin }); if (result.error) setStatus("Não foi possível entrar com Lovable."); }}>Continue with Lovable</Button>
+              <Button variant="secondary" disabled={busy} onClick={async () => { const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } }); if (error) setStatus("Entrar com Google ainda não está ativado neste site."); }}>Continuar com Google</Button>
             </div> : null}
             {mode === "login" ? (
               <Button type="button" onClick={() => switchMode("forgot")} className="text-sm text-primary hover:underline">
