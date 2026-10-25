@@ -26,3 +26,4 @@
 - Admin roles are separate from profiles; every privileged RPC requires an expiring unlock bound to the verified Auth session, with code checks exclusively server-side and durable attempt auditing.
 - XP is awarded by database triggers using durable unique event keys and serialized daily budgets; deleting and recreating a rating/vote cannot re-award its XP.
 - Save versions reference immutable private objects with backend base-version comparison; asynchronous reads and downloads must discard responses after identity transitions.
+- The connected Supabase schema was rebuilt from drizzle/migrations 0000-0015 plus later Lovable migrations; triggers that enforce per-user budgets must skip when auth.uid() is null so cascading account deletion works.
