@@ -282,8 +282,7 @@ export function GamePlayer({ game, onClose }: { game: Game | null; onClose: () =
                     onClick={() => {
                       const w = Math.min(1280, window.screen.availWidth);
                       const h = Math.min(800, window.screen.availHeight);
-                      const opened = window.open(gameUrl, `respawn-${game.name}`, `popup=yes,noopener,noreferrer,width=${w},height=${h}`);
-                      if (opened === null) window.open(gameUrl, "_blank", "noopener,noreferrer");
+                      window.open(gameUrl, `respawn-${game.name.replace(/\W/g, "")}`, `popup=yes,noopener,noreferrer,width=${w},height=${h}`);
                     }}
                   >
                     Jogar em janela limpa
