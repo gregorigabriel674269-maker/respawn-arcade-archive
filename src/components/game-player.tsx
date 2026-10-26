@@ -238,9 +238,9 @@ export function GamePlayer({ game, onClose }: { game: Game | null; onClose: () =
                       sandbox={GAME_SANDBOX}
                       referrerPolicy="no-referrer"
                       onLoad={() => {
-
-                        // onLoad also fires for CSP/X-Frame-Options failures; never claim playability.
-                        setPhase((current) => current === "loading" ? "start" : current);
+                        // onLoad also fires for CSP/X-Frame-Options failures; show the frame
+                        // directly but keep the "blocked?" fallback visible below.
+                        setPhase((current) => current === "loading" ? "play" : current);
                       }}
                       onError={() => setPhase("error")}
                     />
@@ -273,7 +273,24 @@ export function GamePlayer({ game, onClose }: { game: Game | null; onClose: () =
                 ) : null}
               </div>
 
-              {gameUrl ? <p role="status" className="text-sm text-warn">Tela vazia ou jogo bloqueado? <a className="underline" href={gameUrl} target="_blank" rel="noopener noreferrer">Abrir no site original</a></p> : null}
+              {gameUrl ? (
+                <div role="status" className="flex flex-wrap items-center gap-2 text-sm text-warn">
+                  <span>Tela vazia ou jogo bloqueado?</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      const w = Math.min(1280, window.screen.availWidth);
+                      const h = Math.min(800, window.screen.availHeight);
+                      const opened = window.open(gameUrl, `respawn-${game.name}`, `popup=yes,noopener,noreferrer,width=${w},height=${h}`);
+                      if (opened === null) window.open(gameUrl, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    Jogar em janela limpa
+                  </Button>
+                  <a className="underline" href={gameUrl} target="_blank" rel="noopener noreferrer">Abrir no site original</a>
+                </div>
+              ) : null}
 
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm">Sua avaliação</span>
